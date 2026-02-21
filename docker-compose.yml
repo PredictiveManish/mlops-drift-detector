@@ -1,0 +1,16 @@
+version: '3'
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DISCORD_WEBHOOK=${DISCORD_WEBHOOK}
+  dashboard:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dashboard   # separate Dockerfile for Streamlit
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
