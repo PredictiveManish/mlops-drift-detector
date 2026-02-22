@@ -80,4 +80,4 @@ Dashboard: http://localhost:8501
 
 
 
-Made by Manish Tiwari
+Made by predictivemanish
