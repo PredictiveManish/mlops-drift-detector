@@ -35,7 +35,8 @@ A production-ready MLOps system that detects concept drift in machine learning m
 
 ```
 
-### 🔧 Local Installation
+
+## 🔧 Local Installation
 #### 1. Clone the Repository
 Open your terminal/command prompt and run:
 ```bash
