@@ -3,7 +3,7 @@ import requests
 import time
 import json
 
-base_url = "http://localhost:8000"
+base_url = "http://https://mlops-drift-detector.onrender.com"
 
 print("🧪 Testing Drift Detection\n")
 

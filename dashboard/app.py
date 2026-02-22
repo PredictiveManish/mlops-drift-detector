@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 import os
 
-FASTAPI_URL = os.getenv("API_URL", "http://localhost:8000")
+FASTAPI_URL = os.getenv("API_URL", "https://mlops-drift-detector.onrender.com")
 
 st.set_page_config(
     page_title="MLOps Drift Monitor",

@@ -4,7 +4,7 @@ import time
 import json
 
 # API endpoint
-url = "http://localhost:8000/predict"
+url = "http://https://mlops-drift-detector.onrender.com/predict"
 
 # Normal Iris flower measurements (Iris-setosa)
 normal_features = [
@@ -56,7 +56,7 @@ for i in range(20):
 
 # Check drift score after normal predictions
 print("\n📈 Current drift score:")
-response = requests.get("http://localhost:8000/drift_score")
+response = requests.get("http://https://mlops-drift-detector.onrender.com/drift_score")
 print(json.dumps(response.json(), indent=2))
 
 # Send drift-inducing predictions
@@ -81,12 +81,12 @@ for i in range(20):
 
 # Final drift score
 print("\nFinal drift score (should show drift):")
-response = requests.get("http://localhost:8000/drift_score")
+response = requests.get("http://https://mlops-drift-detector.onrender.com/drift_score")
 print(json.dumps(response.json(), indent=2))
 
 # Final statistics
 print("\nFinal statistics:")
-response = requests.get("http://localhost:8000/stats")
+response = requests.get("http://https://mlops-drift-detector.onrender.com/stats")
 print(json.dumps(response.json(), indent=2))
 
 print("\nDone!")
