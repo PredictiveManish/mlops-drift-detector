@@ -78,3 +78,6 @@ API: http://localhost:8000
 API Docs: http://localhost:8000/docs
 Dashboard: http://localhost:8501
 
+
+
+Made by Manish Tiwari
