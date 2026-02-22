@@ -8,17 +8,17 @@ def init_db():
     conn=sqlite3.connect(DB_FILE)
     c=conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS predictions
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              (id INTEGER PRIMARY KEY AUTOINCREMENT,
               features TEXT,
-              prediciton INTEGER,
-              timestamp TEXT''')
+              prediction INTEGER,
+              timestamp TEXT)''')
     conn.commit()
     conn.close()
 
 def log_prediction(features, pred, timestamp):
     conn=sqlite3.connect(DB_FILE)
     c=conn.cursor()
-    c.execute("INSERT INTO predictions (features, prediction, timestamp) VALUES (?,?,?)", (json.dumps(features), pred, timestamp.isformat()))
+    c.execute("INSERT INTO predictions (features, prediction, timestamp) VALUES (?,?,?)", (json.dumps(features), pred, timestamp.isoformat()))
     conn.commit()
     conn.close()
 
@@ -31,7 +31,7 @@ def get_recent_predictions(limit=100):
     return [row[0] for row in rows]
 
 
-def initial_get_predictions(limit=100):
+def get_initial_predictions(limit=100):
     # For demo, using first 100 predictions as baseline
     conn=sqlite3.connect(DB_FILE)
     c=conn.cursor()
@@ -40,6 +40,5 @@ def initial_get_predictions(limit=100):
     conn.close()
     return [row[0] for row in rows]
 
-init_db() # ensures table exists
 
 
