@@ -34,3 +34,46 @@ A production-ready MLOps system that detects concept drift in machine learning m
 └──────────────┘    └─────────────┘    └──────────────┘
 
 ```
+
+### 🔧 Local Installation
+#### 1. Clone the Repository
+Open your terminal/command prompt and run:
+```bash
+git clone https://github.com/YOUR_USERNAME/mlops-drift-detector.git
+cd mlops-drift-detector
+
+" 💡 Pro Tip: If you don't see "Open in Terminal" when right-clicking a folder, click 2-3 times until it appears. "
+
+```
+
+#### 2. Create Virtual Environment using venv or conda (as you want)
+
+#### 3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+#### 4. Train and save model
+```bash
+cd app
+python model.py
+cd ..
+```
+
+#### 5. Run servcies
+- Open two separate terminals
+1. terminal1: FastAPI Server:
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+2. Terminal 2: Streamlit Dashboard
+```bash
+streamlit run dashboard/app.py
+```
+
+#### 6. Access Applications
+API: http://localhost:8000
+API Docs: http://localhost:8000/docs
+Dashboard: http://localhost:8501
+
