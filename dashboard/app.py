@@ -6,11 +6,12 @@ import time
 from datetime import datetime
 import os
 
-FASTAPI_URL = os.getenv("API_URL", "https://mlops-drift-detector.onrender.com")
+FASTAPI_URL = os.getenv("API_URL", "https://mlops-drift-detector.onrender.com") # for deployment
+# FASTAPI_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 st.set_page_config(
     page_title="MLOps Drift Monitor",
-    page_icon="📊",
+    page_icon="",
     layout="wide"
 )
 
@@ -30,27 +31,27 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("📊 Model Drift Monitoring Dashboard")
+st.title("Model Drift Monitoring Dashboard")
 st.markdown("---")
 
 # Sidebar
 with st.sidebar:
-    st.header("⚙️ Configuration")
+    st.header("Configuration")
     
     # API Connection
     st.subheader("API Connection")
     api_url = st.text_input("API URL", value=FASTAPI_URL)
     
     # Test connection
-    if st.button("🔄 Test Connection"):
+    if st.button("Test Connection"):
         try:
             response = requests.get(f"{api_url}/healthz", timeout=5)
             if response.status_code == 200:
-                st.success("✅ Connected to API")
+                st.success("Connected to API")
             else:
-                st.error(f"❌ API returned status {response.status_code}")
+                st.error(f"API returned status {response.status_code}")
         except Exception as e:
-            st.error(f"❌ Cannot connect to API: {str(e)}")
+            st.error(f"Cannot connect to API: {str(e)}")
     
     st.markdown("---")
     
@@ -62,7 +63,7 @@ with st.sidebar:
     st.markdown("---")
     
     # Info
-    st.subheader("ℹ️ About")
+    st.subheader("ℹAbout")
     st.markdown("""
     This dashboard monitors concept drift in real-time.
     - **Drift Score**: 0-1 scale
@@ -93,7 +94,7 @@ def fetch_drift():
             st.error(f"API Error: {resp.status_code}")
             return None
     except requests.exceptions.ConnectionError:
-        st.error("❌ Cannot connect to API. Make sure the server is running.")
+        st.error("Cannot connect to API. Make sure the server is running.")
         return None
     except Exception as e:
         st.error(f"Error: {str(e)}")
@@ -160,15 +161,15 @@ while True:
             )
         
         with col3:
-            status = "⚠️ DRIFT" if alert else "✅ NORMAL"
+            status = "⚠️ DRIFT" if alert else "NORMAL"
             status_placeholder.metric("System Status", status)
         
         # Alert
         if alert and not st.session_state.last_alert:
-            alert_placeholder.error("🚨 **DRIFT DETECTED!** Check Discord for alerts.")
+            alert_placeholder.error("**DRIFT DETECTED!** Check Discord for alerts.")
             st.session_state.last_alert = True
         elif not alert:
-            alert_placeholder.success("✅ System normal - No drift detected")
+            alert_placeholder.success("System normal - No drift detected")
             st.session_state.last_alert = False
         
         # Plot drift history
@@ -219,7 +220,7 @@ while True:
         
         # Display statistics
         if stats:
-            st.subheader("📈 Prediction Statistics")
+            st.subheader("Prediction Statistics")
             col_a, col_b, col_c = st.columns(3)
             
             with col_a:
@@ -244,7 +245,7 @@ while True:
     
     else:
         # Show connection error
-        drift_placeholder.error("⚠️ Waiting for API connection...")
+        drift_placeholder.error("Waiting for API connection...")
     
     # Wait before next refresh
     time.sleep(refresh_rate)
