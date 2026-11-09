@@ -1,92 +1,109 @@
-import requests
-import random
-import time
+"""Drive the API to show drift detection working.
+
+Sends a batch of normal traffic, freezes that as the reference distribution,
+then sends a batch from a different distribution and checks that the drift
+score actually moves. Exits non-zero if it does not.
+
+Usage:
+    BASE_URL=http://127.0.0.1:8000 python generate_predictions.py
+"""
+
 import json
+import os
+import random
+import sys
+import time
 
-# API endpoint
-url = "http://https://mlops-drift-detector.onrender.com/predict"
+import requests
 
-# Normal Iris flower measurements (Iris-setosa)
+BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000").rstrip("/")
+BATCH = int(os.getenv("BATCH", "40"))
+
+# Iris-setosa measurements: what the service normally sees.
 normal_features = [
-    [5.1, 3.5, 1.4, 0.2],  # Setosa
-    [4.9, 3.0, 1.4, 0.2],  # Setosa
-    [4.7, 3.2, 1.3, 0.2],  # Setosa
-    [4.6, 3.1, 1.5, 0.2],  # Setosa
-    [5.0, 3.6, 1.4, 0.2],  # Setosa
-    [5.4, 3.9, 1.7, 0.4],  # Setosa
-    [4.6, 3.4, 1.4, 0.3],  # Setosa
-    [5.0, 3.4, 1.5, 0.2],  # Setosa
-    [4.4, 2.9, 1.4, 0.2],  # Setosa
-    [4.9, 3.1, 1.5, 0.1]   # Setosa
+    [5.1, 3.5, 1.4, 0.2],
+    [4.9, 3.0, 1.4, 0.2],
+    [4.7, 3.2, 1.3, 0.2],
+    [4.6, 3.1, 1.5, 0.2],
+    [5.0, 3.6, 1.4, 0.2],
+    [5.4, 3.9, 1.7, 0.4],
+    [4.6, 3.4, 1.4, 0.3],
+    [5.0, 3.4, 1.5, 0.2],
+    [4.4, 2.9, 1.4, 0.2],
+    [4.9, 3.1, 1.5, 0.1],
 ]
 
-# Anomalous measurements (Versicolor/Virginica) to simulate drift
+# Versicolor / virginica: the distribution shift we want to catch.
 drift_features = [
-    [6.5, 3.0, 5.2, 2.0],   # Virginica
-    [6.4, 3.2, 4.5, 1.5],   # Versicolor
-    [6.3, 3.3, 6.0, 2.5],   # Virginica
-    [5.8, 2.7, 5.1, 1.9],   # Virginica
-    [7.1, 3.0, 5.9, 2.1],   # Virginica
-    [6.3, 2.9, 5.6, 1.8],   # Virginica
-    [6.5, 3.0, 5.8, 2.2],   # Virginica
-    [7.6, 3.0, 6.6, 2.1],   # Virginica
-    [4.9, 2.5, 4.5, 1.7],   # Versicolor
-    [5.6, 2.7, 4.2, 1.3]    # Versicolor
+    [6.5, 3.0, 5.2, 2.0],
+    [6.4, 3.2, 4.5, 1.5],
+    [6.3, 3.3, 6.0, 2.5],
+    [5.8, 2.7, 5.1, 1.9],
+    [7.1, 3.0, 5.9, 2.1],
+    [6.3, 2.9, 5.6, 1.8],
+    [6.5, 3.0, 5.8, 2.2],
+    [7.6, 3.0, 6.6, 2.1],
+    [4.9, 2.5, 4.5, 1.7],
+    [5.6, 2.7, 4.2, 1.3],
 ]
 
-print("\nGenerating predictions to test drift detection...\n")
 
-# Send normal predictions
-print("Sending 20 normal predictions (Setosa)...")
-for i in range(20):
-    features = random.choice(normal_features)
-    payload = {"features": features}
-    
-    try:
-        response = requests.post(url, json=payload)
-        if response.status_code == 200:
-            result = response.json()
-            print(f"  ✓ Prediction {i+1}/20: {result['prediction']} (Setosa)")
-        else:
-            print(f"  ✗ Error: {response.status_code} - {response.text}")
-    except Exception as e:
-        print(f"  ✗ Exception: {e}")
-    
-    time.sleep(0.2)
+def send(features, label):
+    resp = requests.post(f"{BASE_URL}/predict", json={"features": features}, timeout=10)
+    if resp.status_code != 200:
+        print(f"  x {resp.status_code}: {resp.text[:120]}")
+        return None
+    return resp.json()["prediction"]
 
-# Check drift score after normal predictions
-print("\n📈 Current drift score:")
-response = requests.get("http://https://mlops-drift-detector.onrender.com/drift_score")
-print(json.dumps(response.json(), indent=2))
 
-# Send drift-inducing predictions
-print("\n🌊 Sending 20 drift-inducing predictions (Virginica/Versicolor)...")
-for i in range(20):
-    features = random.choice(drift_features)
-    payload = {"features": features}
-    
-    try:
-        response = requests.post(url, json=payload)
-        if response.status_code == 200:
-            result = response.json()
-            prediction = result['prediction']
-            species = "Virginica" if prediction == 2 else "Versicolor" if prediction == 1 else "Setosa"
-            print(f"  ✓ Prediction {i+1}/20: {prediction} ({species})")
-        else:
-            print(f"  ✗ Error: {response.status_code} - {response.text}")
-    except Exception as e:
-        print(f"  ✗ Exception: {e}")
-    
-    time.sleep(0.2)
+def drift():
+    resp = requests.get(f"{BASE_URL}/drift_score", timeout=10)
+    resp.raise_for_status()
+    return resp.json()
 
-# Final drift score
-print("\nFinal drift score (should show drift):")
-response = requests.get("http://https://mlops-drift-detector.onrender.com/drift_score")
-print(json.dumps(response.json(), indent=2))
 
-# Final statistics
-print("\nFinal statistics:")
-response = requests.get("http://https://mlops-drift-detector.onrender.com/stats")
-print(json.dumps(response.json(), indent=2))
+def main():
+    print(f"\nTarget: {BASE_URL}\n")
 
-print("\nDone!")
+    print(f"Sending {BATCH} normal predictions (setosa)...")
+    for i in range(BATCH):
+        send(random.choice(normal_features), "normal")
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{BATCH}")
+    time.sleep(0.5)
+
+    print("\nFreezing this traffic as the reference distribution...")
+    frozen = requests.post(f"{BASE_URL}/baseline?force=true", timeout=10).json()
+    print(json.dumps(frozen, indent=2))
+
+    before = drift()
+    print("\nDrift score against the reference (expected: low):")
+    print(json.dumps(before, indent=2))
+
+    print(f"\nSending {BATCH} drifted predictions (versicolor/virginica)...")
+    for i in range(BATCH):
+        send(random.choice(drift_features), "drift")
+        if (i + 1) % 10 == 0:
+            print(f"  {i + 1}/{BATCH}")
+    time.sleep(0.5)
+
+    after = drift()
+    print("\nDrift score after the shift (expected: high):")
+    print(json.dumps(after, indent=2))
+
+    if after.get("drift_score") is None:
+        print("\nFAIL: not enough data to score.")
+        return 1
+    if after["drift_score"] <= before.get("drift_score", 0):
+        print("\nFAIL: the score did not rise when the distribution changed.")
+        return 1
+    if not after["alert"]:
+        print("\nFAIL: score rose but stayed under the alert threshold.")
+        return 1
+    print(f"\nPASS: {before.get('drift_score')} -> {after['drift_score']} (threshold "
+          f"{after['threshold']}), alert raised.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

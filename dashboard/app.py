@@ -134,7 +134,26 @@ while True:
         threshold = data['threshold']
         recent_samples = data['recent_samples']
         baseline_samples = data['baseline_samples']
-        
+
+        # The API returns null instead of a fake 0.0 when there is not enough
+        # data on both sides to compute a meaningful score.
+        if score is None:
+            drift_placeholder.metric(
+                "Current Drift Score", "n/a",
+                delta="insufficient data", delta_color="off"
+            )
+            samples_placeholder.metric(
+                "Recent Samples", recent_samples,
+                delta=f"Baseline: {baseline_samples} ({data.get('baseline_source', '?')})"
+            )
+            status_placeholder.metric("System Status", "WARMING UP")
+            alert_placeholder.info(
+                "Waiting for enough samples on both sides before scoring. "
+                "POST /baseline freezes the reference distribution."
+            )
+            time.sleep(refresh_rate)
+            continue
+
         # Update history
         st.session_state.history.append(score)
         st.session_state.timestamps.append(datetime.now())

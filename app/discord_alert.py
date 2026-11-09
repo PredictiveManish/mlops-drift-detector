@@ -1,19 +1,28 @@
 import os
-import requests
 import logging
 
-WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK", "https://discord.com/api/webhooks/1474862103138402306/UQo03RbfP4LXkxVNUVn_p-ZbLZXnmkBbrbDVJqOynKDbt32pBvi-TuCwrIRZl1_FGFvB")
+import requests
+
+from app import config
+
 
 def send_alert(message):
-    if not WEBHOOK_URL:
-        logging.warning("DISCORD WEBHOOD not set, skipping alert.")
+    """Post a drift alert to Discord.
+
+    The webhook comes from the DISCORD_WEBHOOK environment variable. There is
+    deliberately no default: a URL committed to the repository is a leaked
+    secret that anyone can post to.
+    """
+    webhook = config.DISCORD_WEBHOOK
+    if not webhook:
+        logging.warning("DISCORD_WEBHOOK not set, skipping alert.")
         return False
     try:
-        data = {"content": message}
-        response = requests.post(WEBHOOK_URL, json=data)
+        response = requests.post(
+            webhook, json={"content": message}, timeout=(3, 5)
+        )
         response.raise_for_status()
         return True
     except Exception as e:
         logging.error(f"Failed to send Discord alert: {e}")
-        
-
+        return False
